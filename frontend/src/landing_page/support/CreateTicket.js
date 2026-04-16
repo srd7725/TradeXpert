@@ -5,4 +5,4 @@ function CreateTicket() {
      );
 }
 
-export default Createticket;
+export default CreateTicket;
