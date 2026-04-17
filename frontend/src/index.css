@@ -91,3 +91,8 @@ code {
 .app-buttons img {
   background: transparent;
 }
+.partner-logo {
+  height: 80px;
+  width: 180px;
+  object-fit: contain;
+}
