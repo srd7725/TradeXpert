@@ -19,6 +19,8 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+
+
 // app.get("/addHoldings", async(req, res) =>{
 //     let tempHoldings= [
 //   {
@@ -190,16 +192,21 @@ app.use(bodyParser.json());
 //   res.send("Done!");
 // });
 app.get("/allHoldings", async (req, res) => {
-  let allHoldings = await HoldingsModel.find({});
-  res.json(allHoldings);
+  try {
+    const allHoldings = await HoldingsModel.find({});
+    res.json(allHoldings);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error fetching holdings");
+  }
 });
 
-app.get("/allPositions", async (req, res) => {
+app.get("/allPositions", async (req, res) => {  //  ADD HERE
   let allPositions = await PositionsModel.find({});
   res.json(allPositions);
 });
 
-app.post("/newOrder", async (req, res) => {
+app.post("/newOrder", async (req, res) => {     // ADD HERE
   let newOrder = new OrdersModel({
     name: req.body.name,
     qty: req.body.qty,
@@ -207,7 +214,7 @@ app.post("/newOrder", async (req, res) => {
     mode: req.body.mode,
   });
 
-  newOrder.save();
+  await newOrder.save();  //  better (await add kiya)
 
   res.send("Order saved!");
 });
