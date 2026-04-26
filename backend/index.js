@@ -16,7 +16,10 @@ const uri = process.env.MONGO_URL;
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "https://tradexpert-dashboard.vercel.app",
+  credentials: true
+}));
 app.use(bodyParser.json());
 
 
