@@ -94,6 +94,15 @@ const Menu = () => {
           <div className="avatar">ZU</div>
           <p className="username">USERID</p>
         </div>
+        {isProfileDropdownOpen && (
+          <div className="logout-menu" style={{ textAlign: "center", padding: "10px", cursor: "pointer", color: "red" }} onClick={() => {
+            localStorage.removeItem("token");
+            sessionStorage.removeItem("isLoggedIn");
+            window.location.replace("/login");
+          }}>
+            Logout
+          </div>
+        )}
       </div>
     </div>
   );

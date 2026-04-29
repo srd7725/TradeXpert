@@ -1,10 +1,35 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const Summary = () => {
+  const [summary, setSummary] = useState({
+    userName: "User",
+    totalInvestment: "0.00",
+    currentValue: "0.00",
+    totalPnL: "0.00",
+    pnlPercentage: "0.00"
+  });
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await axios.get("http://localhost:3002/dashboardSummary", {
+          headers: { Authorization: "Bearer " + token }
+        });
+        setSummary(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchSummary();
+  }, []);
+
   return (
     <>
       <div className="username">
-        <h6>Hi, User!</h6>
+        <h6>Hi, {summary.userName}!</h6>
         <hr className="divider" />
       </div>
 
@@ -34,13 +59,13 @@ const Summary = () => {
 
       <div className="section">
         <span>
-          <p>Holdings (13)</p>
+          <p>Holdings Summary</p>
         </span>
 
         <div className="data">
           <div className="first">
-            <h3 className="profit">
-              1.55k <small>+5.20%</small>{" "}
+            <h3 className={Number(summary.totalPnL) >= 0 ? "profit" : "loss"}>
+              {summary.totalPnL} <small>{summary.pnlPercentage}%</small>{" "}
             </h3>
             <p>P&L</p>
           </div>
@@ -48,10 +73,10 @@ const Summary = () => {
 
           <div className="second">
             <p>
-              Current Value <span>31.43k</span>{" "}
+              Current Value <span>{summary.currentValue}</span>{" "}
             </p>
             <p>
-              Investment <span>29.88k</span>{" "}
+              Investment <span>{summary.totalInvestment}</span>{" "}
             </p>
           </div>
         </div>

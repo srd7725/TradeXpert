@@ -1,0 +1,203 @@
+@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
+
+.auth-page-container {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #f8f9fa;
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-left-side {
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  height: 100vh;
+}
+
+.auth-left-side h1 {
+  font-weight: 700;
+  margin-bottom: 1rem;
+  font-size: 3rem;
+  text-align: center;
+}
+
+.auth-left-side p {
+  font-size: 1.25rem;
+  opacity: 0.9;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-left-side img {
+  max-width: 80%;
+  max-height: 40vh;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.auth-right-side {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f4f6f9;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 500px;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  background-color: white;
+  border: none;
+}
+
+/* Nav Tabs Styling for Auth */
+.auth-tabs {
+  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 1.5rem;
+}
+
+.auth-tabs .nav-link {
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.auth-tabs .nav-link:hover {
+  color: #387ed1;
+  border: none;
+}
+
+.auth-tabs .nav-link.active {
+  color: #387ed1;
+  background: transparent;
+  border: none;
+}
+
+.auth-tabs .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #387ed1;
+}
+
+.auth-card h3 {
+  font-weight: 700;
+  color: #333;
+}
+
+.auth-card .text-muted {
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.form-floating .form-control {
+  border-radius: 8px;
+}
+
+.password-container {
+  position: relative;
+}
+
+.password-toggle-icon {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #6c757d;
+  z-index: 10;
+}
+
+.btn-primary-fintech {
+  background-color: #387ed1;
+  border-color: #387ed1;
+  padding: 0.75rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary-fintech:hover {
+  background-color: #2b62a3;
+  border-color: #2b62a3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(56, 126, 209, 0.2);
+}
+
+.divider-container {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+}
+
+.divider-line {
+  flex-grow: 1;
+  height: 1px;
+  background-color: #dee2e6;
+}
+
+.divider-text {
+  margin: 0 15px;
+  color: #6c757d;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.social-btn {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  font-weight: 500;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.btn-google {
+  background-color: white;
+  border: 1px solid #dee2e6;
+  color: #495057;
+}
+
+.btn-google:hover {
+  background-color: #f8f9fa;
+  border-color: #ced4da;
+}
+
+.btn-google img {
+  width: 20px;
+}
+
+.btn-facebook {
+  background-color: #1877F2;
+  border: 1px solid #1877F2;
+  color: white;
+}
+
+.btn-facebook:hover {
+  background-color: #166fe5;
+  color: white;
+}
+
+.btn-facebook i {
+  font-size: 1.2rem;
+}
