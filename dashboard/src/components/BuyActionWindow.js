@@ -12,11 +12,25 @@ const BuyActionWindow = ({ uid }) => {
   const [stockPrice, setStockPrice] = useState(0.0);
 
   const handleBuyClick = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
     axios.post("http://localhost:3002/newOrder", {
       name: uid,
       qty: stockQuantity,
       price: stockPrice,
       mode: "BUY",
+    }, {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    }).catch(err => {
+      if (err.response && err.response.status === 401) {
+        window.location.href = "/login";
+      }
     });
 
     GeneralContext.closeBuyWindow();
