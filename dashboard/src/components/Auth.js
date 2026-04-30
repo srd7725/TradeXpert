@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import "./Auth.css";
+import GeneralContext from "./GeneralContext";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,6 +13,7 @@ const Auth = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { setUser } = useContext(GeneralContext);
 
   React.useEffect(() => {
     const token = localStorage.getItem("token");
@@ -62,8 +63,15 @@ const Auth = () => {
 
       if (response.ok && data.success) {
         if (isLogin) {
+          const userData = {
+            name: (data.user.fullName || data.user.name || "").trim(),
+            email: data.user.email
+          };
+          console.log("Saving user:", userData);
           localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(userData));
           sessionStorage.setItem("isLoggedIn", "true");
+          setUser(userData); // Update global state
           navigate("/", { replace: true });
         } else {
           setName("");

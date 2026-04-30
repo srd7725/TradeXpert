@@ -143,7 +143,6 @@ import { VerticalGraph } from "./VerticalGraph";
 const Holdings = () => {
   const [allHoldings, setAllHoldings] = useState([]);
 
-useEffect(() => {
   const fetchData = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -157,7 +156,6 @@ useEffect(() => {
           Authorization: "Bearer " + token
         }
       });
-      console.log(res.data);
       setAllHoldings(res.data);
     } catch (err) {
       if (err.response && err.response.status === 401) {
@@ -167,8 +165,11 @@ useEffect(() => {
     }
   };
 
-  fetchData();
-}, []);
+  useEffect(() => {
+    fetchData();
+    window.addEventListener("orderUpdate", fetchData);
+    return () => window.removeEventListener("orderUpdate", fetchData);
+  }, []);
 
   // const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
   const labels = allHoldings.map((subArray) => subArray["name"]);

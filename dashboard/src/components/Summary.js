@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import GeneralContext from "./GeneralContext";
 
 const Summary = () => {
+  const navigate = useNavigate();
+  const { user } = useContext(GeneralContext);
+
   const [summary, setSummary] = useState({
     userName: "User",
     totalInvestment: "0.00",
@@ -11,9 +16,18 @@ const Summary = () => {
   });
 
   useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (!savedUser) {
+      navigate("/login");
+      return;
+    }
+
     const fetchSummary = async () => {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        navigate("/login");
+        return;
+      }
       try {
         const res = await axios.get("http://localhost:3002/dashboardSummary", {
           headers: { Authorization: "Bearer " + token }
@@ -24,12 +38,15 @@ const Summary = () => {
       }
     };
     fetchSummary();
-  }, []);
+  }, [navigate]);
+
+  const userName =
+    user && user.name && user.name.trim() !== "" ? user.name : "Guest";
 
   return (
     <>
       <div className="username">
-        <h6>Hi, {summary.userName}!</h6>
+        <h4>Hi, {userName}!</h4>
         <hr className="divider" />
       </div>
 
