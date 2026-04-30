@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
+import { Link } from "react-router-dom";
 import Menu from "./Menu";
 import GeneralContext from "./GeneralContext";
 
@@ -17,15 +18,16 @@ const TopBar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const userName =
-    user && user.name && user.name.trim() !== "" ? user.name : "Guest";
+  console.log("DEBUG LOCALSTORAGE USER:", localStorage.getItem("user"));
+  const storedUser = localStorage.getItem("user");
+  const userObj = storedUser ? JSON.parse(storedUser) : null;
+  const rawName = user?.name || userObj?.name;
+  const userName = rawName && rawName.trim() !== "" ? rawName : "Guest";
 
-  const getInitials = (name) => {
-    if (!name || name === "Guest") return "U";
-    const words = name.trim().split(" ").filter(Boolean);
-    if (words.length === 1) return words[0][0].toUpperCase();
-    return (words[0][0] + words[1][0]).toUpperCase();
-  };
+  const initials =
+    userName !== "Guest"
+      ? userName.split(" ").map(n => n[0]).join("").toUpperCase()
+      : "G";
 
   return (
     <>
@@ -80,7 +82,7 @@ const TopBar = () => {
               style={{ cursor: "pointer" }}
             >
               <div className="avatar" style={{ width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "#eee", fontSize: "14px", color: "#000", fontWeight: "bold" }}>
-                {getInitials(userName)}
+                {initials}
               </div>
               <div className="username user-name" style={{ fontSize: "14px", fontWeight: 500, color: "#444" }}>
                 {userName}
@@ -89,7 +91,9 @@ const TopBar = () => {
 
             {isProfileDropdownOpen && (
               <div className="dropdown" style={{ position: "absolute", top: "45px", right: "0", width: "150px", background: "white", border: "1px solid #ddd", borderRadius: "6px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", zIndex: 1050 }}>
-                <div style={{ padding: "10px", cursor: "pointer", borderBottom: "1px solid #eee", fontSize: "14px", color: "#444" }}>Profile</div>
+                <Link to="/profile" style={{ textDecoration: "none" }} onClick={() => setIsProfileDropdownOpen(false)}>
+                  <div style={{ padding: "10px", cursor: "pointer", borderBottom: "1px solid #eee", fontSize: "14px", color: "#444" }}>Profile</div>
+                </Link>
                 <div style={{ padding: "10px", cursor: "pointer", color: "red", fontSize: "14px" }} onClick={logout}>Logout</div>
               </div>
             )}

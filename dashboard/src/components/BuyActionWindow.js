@@ -15,12 +15,85 @@ const BuyActionWindow = ({ uid, initialMode = "BUY" }) => {
 
   const handleBuyClick = () => {
     const token = localStorage.getItem("token");
-    if (!token) {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!token || !user) {
       window.location.href = "/login";
       return;
     }
 
-    axios.post("http://localhost:3002/newOrder", {
+    const newOrder = {
+      name: uid,
+      qty: Number(stockQuantity),
+      price: Number(stockPrice),
+      mode: mode,
+      status: "Completed", // Assuming immediate completion for this logic
+      createdAt: new Date().toISOString(),
+    };
+
+    // Save Order User-wise
+    let orders = JSON.parse(localStorage.getItem("orders")) || {};
+    if (!orders[user.email]) {
+      orders[user.email] = [];
+    }
+    orders[user.email].push(newOrder);
+    localStorage.setItem("orders", JSON.stringify(orders));
+
+    // Save Position User-wise
+    let positions = JSON.parse(localStorage.getItem("positions")) || {};
+    if (!positions[user.email]) {
+      positions[user.email] = [];
+    }
+
+    const existingPositionIndex = positions[user.email].findIndex(p => p.name === uid);
+    const qty = Number(stockQuantity);
+    const price = Number(stockPrice);
+
+    if (mode === "BUY") {
+      if (existingPositionIndex !== -1) {
+        // Update existing position (Weighted Average)
+        const pos = positions[user.email][existingPositionIndex];
+        const newQty = pos.qty + qty;
+        const newAvg = ((pos.avg * pos.qty) + (price * qty)) / newQty;
+        
+        positions[user.email][existingPositionIndex] = {
+          ...pos,
+          qty: newQty,
+          avg: newAvg,
+          price: price + 0.5, // Update LTP as well
+        };
+      } else {
+        // Add new position
+        const newPosition = {
+          product: "CNC",
+          name: uid,
+          qty: qty,
+          avg: price,
+          price: price + 0.5, // Dummy LTP
+          net: "+0.00%",
+          day: "+0.00%",
+          isLoss: false,
+        };
+        positions[user.email].push(newPosition);
+      }
+    } else if (mode === "SELL") {
+      if (existingPositionIndex !== -1) {
+        const pos = positions[user.email][existingPositionIndex];
+        if (pos.qty > qty) {
+          positions[user.email][existingPositionIndex].qty -= qty;
+        } else {
+          // Remove position if quantity becomes 0 or less
+          positions[user.email].splice(existingPositionIndex, 1);
+        }
+      } else {
+        alert("You don't have any positions in " + uid + " to sell!");
+        return;
+      }
+    }
+
+    localStorage.setItem("positions", JSON.stringify(positions));
+
+    axios.post("http://localhost:5000/newOrder", {
       name: uid,
       qty: Number(stockQuantity),
       price: Number(stockPrice),

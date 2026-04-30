@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Auth.css";
+import axios from "axios";
 import GeneralContext from "./GeneralContext";
 
 const Auth = () => {
@@ -45,33 +46,24 @@ const Auth = () => {
     }
 
     const url = isLogin
-      ? "http://localhost:3002/login"
-      : "http://localhost:3002/signup";
+      ? "http://localhost:5000/login"
+      : "http://localhost:5000/signup";
 
     try {
       const payload = isLogin ? { email, password } : { fullName: name, email, password };
       
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
+      const res = isLogin 
+        ? await axios.post(url, payload)
+        : await axios.post(url, payload);
       
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      console.log("DEBUG LOGIN RESPONSE:", res.data);
+      if (res.data.success) {
         if (isLogin) {
-          const userData = {
-            name: (data.user.fullName || data.user.name || "").trim(),
-            email: data.user.email
-          };
-          console.log("Saving user:", userData);
-          localStorage.setItem("token", data.token);
+          const userData = res.data.user;
+          localStorage.setItem("token", res.data.token);
           localStorage.setItem("user", JSON.stringify(userData));
           sessionStorage.setItem("isLoggedIn", "true");
-          setUser(userData); // Update global state
+          setUser(userData); 
           navigate("/", { replace: true });
         } else {
           setName("");
@@ -81,10 +73,10 @@ const Auth = () => {
           setIsLogin(true);
         }
       } else {
-        setError(data || "An error occurred");
+        setError(res.data.message || "An error occurred");
       }
     } catch (err) {
-      setError("Server error. Please try again.");
+      setError(err.response?.data || "Server error. Please try again.");
     }
   };
 

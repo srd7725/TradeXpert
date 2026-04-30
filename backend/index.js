@@ -16,7 +16,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { userVerification } = require("./middlewares/authMiddleware");
 
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 5000;
 const uri = process.env.MONGO_URI;
 
 const app = express();
@@ -266,6 +266,7 @@ app.post("/signup", async (req, res) => {
     const encryptedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
       fullName: fullName,
+      name: fullName,
       email: email.toLowerCase(),
       password: encryptedPassword,
     });
@@ -286,7 +287,9 @@ app.post("/login", async (req, res) => {
       return res.status(400).send("All input is required");
     }
     
-    const user = await User.findOne({ email });
+    // Always lowercase email for consistency
+    const cleanEmail = email.toLowerCase();
+    const user = await User.findOne({ email: cleanEmail });
     if (!user) {
       return res.status(404).send("User not found, please register");
     }
@@ -305,13 +308,34 @@ app.post("/login", async (req, res) => {
       success: true, 
       token, 
       user: {
-        fullName: user.fullName,
-        email: user.email
+        name: user.name || user.fullName,
+        email: user.email,
+        balance: user.balance
       } 
     });
   } catch (err) {
     console.log(err);
     res.status(500).send("Error during login");
+  }
+});
+
+app.get("/user-data", async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) return res.status(400).send("Email is required");
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).send("User not found");
+
+    res.json({
+      balance: user.balance,
+      orders: user.orders,
+      positions: user.positions,
+      holdings: user.holdings
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error fetching user data");
   }
 });
 
@@ -333,6 +357,7 @@ app.get("/dashboardSummary", userVerification, async (req, res) => {
 
     res.json({
       userName: user ? user.fullName : "User",
+      balance: user ? user.balance : 0,
       totalInvestment: totalInvestment.toFixed(2),
       currentValue: currentValue.toFixed(2),
       totalPnL: totalPnL.toFixed(2),
@@ -369,46 +394,80 @@ app.post("/newOrder", userVerification, async (req, res) => {
     const { name, qty, price, mode } = req.body;
     const userId = req.user.user_id;
 
-    let newOrder = new OrdersModel({
-      name, qty, price, mode, userId
-    });
-    await newOrder.save();
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).send("User not found");
+
+    let newOrder = {
+      name, qty, price, mode, 
+      createdAt: new Date(),
+      status: "Completed"
+    };
+
+    // Update User model fields
+    user.orders.push(newOrder);
 
     if (mode === "BUY") {
-      let holding = await HoldingsModel.findOne({ name, userId });
-      if (holding) {
-        let totalQty = holding.qty + qty;
-        let totalCost = (holding.avg * holding.qty) + (price * qty);
-        holding.avg = totalCost / totalQty;
-        holding.qty = totalQty;
-        holding.price = price;
-        await holding.save();
+      const totalCost = qty * price;
+      if (user.balance < totalCost) {
+        return res.status(400).send("Insufficient balance");
+      }
+      user.balance -= totalCost;
+
+      // Update positions in User model
+      let posIndex = user.positions.findIndex(p => p.name === name);
+      if (posIndex > -1) {
+        let existingPos = user.positions[posIndex];
+        let totalQty = existingPos.qty + qty;
+        let totalVal = (existingPos.avg * existingPos.qty) + (price * qty);
+        existingPos.avg = totalVal / totalQty;
+        existingPos.qty = totalQty;
+        existingPos.price = price;
+        user.positions[posIndex] = existingPos;
       } else {
-        await HoldingsModel.create({
-          name, qty, avg: price, price, net: "0.00%", day: "0.00%", userId
-        });
+        user.positions.push({ name, qty, avg: price, price, product: "CNC" });
       }
 
-      await PositionsModel.create({
-        product: "CNC", name, qty, avg: price, price, day: "0.00%", isLoss: false, userId
-      });
+      // Update holdings in User model
+      let holdIndex = user.holdings.findIndex(h => h.name === name);
+      if (holdIndex > -1) {
+        let existingHold = user.holdings[holdIndex];
+        let totalQty = existingHold.qty + qty;
+        let totalVal = (existingHold.avg * existingHold.qty) + (price * qty);
+        existingHold.avg = totalVal / totalQty;
+        existingHold.qty = totalQty;
+        existingHold.price = price;
+        user.holdings[holdIndex] = existingHold;
+      } else {
+        user.holdings.push({ name, qty, avg: price, price, net: "0.00%", day: "0.00%" });
+      }
     } else if (mode === "SELL") {
-      let holding = await HoldingsModel.findOne({ name, userId });
-      if (holding) {
-        if (holding.qty > qty) {
-          holding.qty -= qty;
-          await holding.save();
+      user.balance += (qty * price);
+      
+      let posIndex = user.positions.findIndex(p => p.name === name);
+      if (posIndex > -1) {
+        if (user.positions[posIndex].qty > qty) {
+          user.positions[posIndex].qty -= qty;
         } else {
-          await HoldingsModel.deleteOne({ name, userId });
+          user.positions.splice(posIndex, 1);
         }
       }
 
-      await PositionsModel.create({
-        product: "CNC", name, qty: -qty, avg: price, price, day: "0.00%", isLoss: false, userId
-      });
+      let holdIndex = user.holdings.findIndex(h => h.name === name);
+      if (holdIndex > -1) {
+        if (user.holdings[holdIndex].qty > qty) {
+          user.holdings[holdIndex].qty -= qty;
+        } else {
+          user.holdings.splice(holdIndex, 1);
+        }
+      }
     }
 
-    res.json({ message: "Order processed successfully", order: newOrder });
+    user.markModified('positions');
+    user.markModified('orders');
+    user.markModified('holdings');
+    await user.save();
+
+    res.json({ message: "Order processed successfully", balance: user.balance });
   } catch (err) {
     console.log(err);
     res.status(500).send("Error processing order");
@@ -471,6 +530,76 @@ app.post("/withdrawFunds", userVerification, async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).send("Error withdrawing funds");
+  }
+});
+
+
+app.post("/change-password", async (req, res) => {
+  console.log("--- START: CHANGE PASSWORD ATTEMPT ---");
+  try {
+    const { email, oldPassword, newPassword } = req.body;
+    
+    if (!(email && oldPassword && newPassword)) {
+      console.log("Debug: Missing input fields");
+      return res.status(400).send("Email, old password, and new password are required");
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    console.log("Searching for user with email:", `'${cleanEmail}'`);
+
+    // Using regex to find user - helps with case sensitivity and potential minor DB inconsistencies
+    const user = await User.findOne({ email: { $regex: new RegExp("^" + cleanEmail + "$", "i") } });
+    
+    if (!user) {
+      console.log("Debug: User NOT FOUND for email:", cleanEmail);
+      return res.status(404).send("User not found. Please ensure your email is correct.");
+    }
+
+    console.log("Debug: User found! ID:", user._id);
+
+    // Validate old password
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    console.log("Debug: Old password match result:", isMatch);
+
+    if (!isMatch) {
+      console.log("Debug: Password mismatch for user:", cleanEmail);
+      return res.status(401).send("Old password incorrect");
+    }
+
+    // Relaxed length validation (8-100 chars)
+    if (newPassword.length < 8 || newPassword.length > 100) {
+      console.log("Debug: New password length invalid:", newPassword.length);
+      return res.status(400).send("New password must be between 8 and 100 characters");
+    }
+
+    if (oldPassword === newPassword) {
+      return res.status(400).send("New password cannot be the same as the old one");
+    }
+
+    // Hash new password
+    console.log("Debug: Hashing new password...");
+    const encryptedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = encryptedPassword;
+
+    // DATA INTEGRITY FIX: Ensure all schema fields exist before saving (important for legacy users)
+    if (!user.fullName) {
+      user.fullName = user.name || "User";
+      console.log("Debug: Missing fullName fixed for legacy user.");
+    }
+    if (user.balance === undefined) user.balance = 50000;
+    if (!user.orders) user.orders = [];
+    if (!user.positions) user.positions = [];
+    if (!user.holdings) user.holdings = [];
+    
+    console.log("Debug: Saving updated user to MongoDB...");
+    await user.save();
+    
+    console.log("Debug: Password updated successfully! ✅");
+    res.status(200).json({ success: true, message: "Password updated successfully" });
+
+  } catch (err) {
+    console.error("CRITICAL ERROR in /change-password:", err);
+    res.status(500).send("Internal server error while updating password");
   }
 });
 

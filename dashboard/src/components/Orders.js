@@ -7,19 +7,21 @@ const Orders = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
+      const stored = localStorage.getItem("user");
+      if (!stored) return;
 
+      const user = JSON.parse(stored);
       try {
-        const res = await axios.get("http://localhost:3002/orders", {
-          headers: { Authorization: "Bearer " + token }
-        });
-        setOrders(res.data);
+        const res = await axios.get(`http://localhost:5000/user-data?email=${user.email}`);
+        setOrders(res.data.orders || []);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching user orders", err);
       }
     };
+    
     fetchOrders();
+    window.addEventListener("orderUpdate", fetchOrders);
+    return () => window.removeEventListener("orderUpdate", fetchOrders);
   }, []);
 
   return (

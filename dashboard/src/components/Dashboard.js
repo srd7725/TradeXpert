@@ -9,6 +9,7 @@ import Orders from "./Orders";
 import Positions from "./Positions";
 import Summary from "./Summary";
 import WatchList from "./WatchList";
+import Profile from "./Profile";
 import GeneralContext, { GeneralContextProvider } from "./GeneralContext";
 import BuyActionWindow from "./BuyActionWindow";
 
@@ -23,6 +24,7 @@ const DashboardContent = () => {
         <Route path="/positions" element={<Positions />} />
         <Route path="/funds" element={<Funds />} />
         <Route path="/apps" element={<Apps />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
       {ctx.isBuyWindowOpen && <BuyActionWindow uid={ctx.selectedStockUID} initialMode={ctx.mode} />}
     </div>

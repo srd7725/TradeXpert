@@ -6,6 +6,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Your full name is required"],
   },
+  name: {
+    type: String,
+  },
   email: {
     type: String,
     required: [true, "Your email address is required"],
@@ -15,9 +18,25 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Your password is required"],
   },
+  balance: {
+    type: Number,
+    default: 50000,
+  },
+  orders: {
+    type: Array,
+    default: [],
+  },
+  positions: {
+    type: Array,
+    default: [],
+  },
+  holdings: {
+    type: Array,
+    default: [],
+  },
   createdAt: {
     type: Date,
-    default: new Date(),
+    default: Date.now,
   },
 });
 

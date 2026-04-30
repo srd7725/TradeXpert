@@ -12,7 +12,7 @@ const Funds = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const res = await axios.get("http://localhost:3002/funds", {
+      const res = await axios.get("http://localhost:5000/funds", {
         headers: { Authorization: "Bearer " + token }
       });
       setFunds(res.data);
@@ -26,7 +26,7 @@ const Funds = () => {
     if (!amount || isNaN(amount)) return;
     const token = localStorage.getItem("token");
     try {
-      const res = await axios.post("http://localhost:3002/addFunds", { amount }, {
+      const res = await axios.post("http://localhost:5000/addFunds", { amount }, {
         headers: { Authorization: "Bearer " + token }
       });
       setFunds(res.data);
@@ -40,7 +40,7 @@ const Funds = () => {
     if (!amount || isNaN(amount)) return;
     const token = localStorage.getItem("token");
     try {
-      const res = await axios.post("http://localhost:3002/withdrawFunds", { amount }, {
+      const res = await axios.post("http://localhost:5000/withdrawFunds", { amount }, {
         headers: { Authorization: "Bearer " + token }
       });
       setFunds(res.data);
