@@ -301,7 +301,14 @@ app.post("/login", async (req, res) => {
       process.env.TOKEN_KEY || "your_secret_key",
       { expiresIn: "1d" }
     );
-    return res.status(200).json({ success: true, token, user });
+    return res.status(200).json({ 
+      success: true, 
+      token, 
+      user: {
+        fullName: user.fullName,
+        email: user.email
+      } 
+    });
   } catch (err) {
     console.log(err);
     res.status(500).send("Error during login");
@@ -359,19 +366,52 @@ app.get("/allPositions", userVerification, async (req, res) => {
 
 app.post("/newOrder", userVerification, async (req, res) => {
   try {
-    let newOrder = new OrdersModel({
-      name: req.body.name,
-      qty: req.body.qty,
-      price: req.body.price,
-      mode: req.body.mode,
-      userId: req.user.user_id
-    });
+    const { name, qty, price, mode } = req.body;
+    const userId = req.user.user_id;
 
+    let newOrder = new OrdersModel({
+      name, qty, price, mode, userId
+    });
     await newOrder.save();
-    res.send("Order saved!");
+
+    if (mode === "BUY") {
+      let holding = await HoldingsModel.findOne({ name, userId });
+      if (holding) {
+        let totalQty = holding.qty + qty;
+        let totalCost = (holding.avg * holding.qty) + (price * qty);
+        holding.avg = totalCost / totalQty;
+        holding.qty = totalQty;
+        holding.price = price;
+        await holding.save();
+      } else {
+        await HoldingsModel.create({
+          name, qty, avg: price, price, net: "0.00%", day: "0.00%", userId
+        });
+      }
+
+      await PositionsModel.create({
+        product: "CNC", name, qty, avg: price, price, day: "0.00%", isLoss: false, userId
+      });
+    } else if (mode === "SELL") {
+      let holding = await HoldingsModel.findOne({ name, userId });
+      if (holding) {
+        if (holding.qty > qty) {
+          holding.qty -= qty;
+          await holding.save();
+        } else {
+          await HoldingsModel.deleteOne({ name, userId });
+        }
+      }
+
+      await PositionsModel.create({
+        product: "CNC", name, qty: -qty, avg: price, price, day: "0.00%", isLoss: false, userId
+      });
+    }
+
+    res.json({ message: "Order processed successfully", order: newOrder });
   } catch (err) {
     console.log(err);
-    res.status(500).send("Error saving order");
+    res.status(500).send("Error processing order");
   }
 });
 

@@ -50,73 +50,57 @@ const Funds = () => {
   };
 
   return (
-    <>
-      <div className="funds">
-        <p>Instant, zero-cost fund transfers with UPI </p>
-        <button className="btn btn-green" onClick={handleAddFunds} style={{marginRight: '10px'}}>Add funds</button>
-        <button className="btn btn-blue" onClick={handleWithdraw}>Withdraw</button>
-      </div>
-
-      <div className="row">
-        <div className="col">
-          <span>
-            <p>Equity</p>
-          </span>
-
-          <div className="table">
-            <div className="data">
-              <p>Available margin</p>
-              <p className="imp colored">{funds.availableMargin.toFixed(2)}</p>
-            </div>
-            <div className="data">
-              <p>Used margin</p>
-              <p className="imp">{funds.usedMargin.toFixed(2)}</p>
-            </div>
-            <div className="data">
-              <p>Available cash</p>
-              <p className="imp">{funds.balance.toFixed(2)}</p>
-            </div>
-            <hr />
-            <div className="data">
-              <p>Opening Balance</p>
-              <p>{funds.balance.toFixed(2)}</p>
-            </div>
-            <div className="data">
-              <p>Payin</p>
-              <p>0.00</p>
-            </div>
-            <div className="data">
-              <p>SPAN</p>
-              <p>0.00</p>
-            </div>
-            <div className="data">
-              <p>Delivery margin</p>
-              <p>0.00</p>
-            </div>
-            <div className="data">
-              <p>Exposure</p>
-              <p>0.00</p>
-            </div>
-            <div className="data">
-              <p>Options premium</p>
-              <p>0.00</p>
-            </div>
-            <hr />
-            <div className="data">
-              <p>Total Collateral</p>
-              <p>0.00</p>
-            </div>
+    <div className="w-100 p-4">
+      <h3 className="title mb-4">Funds</h3>
+      
+      <div className="card shadow-sm border-0 mb-4" style={{ maxWidth: "400px" }}>
+        <div className="card-body p-4">
+          <div className="d-flex justify-content-between mb-3 border-bottom pb-2">
+            <span className="text-muted">Available Balance:</span>
+            <span className="fw-bold fs-5 text-success">₹{funds.balance.toFixed(2)}</span>
           </div>
-        </div>
-
-        <div className="col">
-          <div className="commodity">
-            <p>You don't have a commodity account</p>
-            <button className="btn btn-blue">Open Account</button>
+          <div className="d-flex justify-content-between mb-4">
+            <span className="text-muted">Used Margin:</span>
+            <span className="fw-bold">₹{funds.usedMargin.toFixed(2)}</span>
+          </div>
+          <div className="d-flex gap-3">
+            <button className="btn btn-primary flex-fill fw-bold py-2" onClick={handleAddFunds}>Add Funds</button>
+            <button className="btn btn-danger flex-fill fw-bold py-2" onClick={handleWithdraw}>Withdraw</button>
           </div>
         </div>
       </div>
-    </>
+
+      <div className="row g-4">
+        <div className="col-12 col-md-6">
+          <h5 className="mb-3 text-muted">Equity</h5>
+          <div className="card shadow-sm border-0 p-3">
+            <div className="d-flex justify-content-between py-2 border-bottom">
+              <span>Available margin</span>
+              <span className="fw-bold text-success">{funds.availableMargin.toFixed(2)}</span>
+            </div>
+            <div className="d-flex justify-content-between py-2 border-bottom">
+              <span>Used margin</span>
+              <span className="fw-bold">{funds.usedMargin.toFixed(2)}</span>
+            </div>
+            <div className="d-flex justify-content-between py-2 border-bottom">
+              <span>Available cash</span>
+              <span className="fw-bold">{funds.balance.toFixed(2)}</span>
+            </div>
+            <div className="d-flex justify-content-between py-2 text-muted">
+              <span>Opening Balance</span>
+              <span>{funds.balance.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+        <div className="col-12 col-md-6">
+          <h5 className="mb-3 text-muted">Commodity</h5>
+          <div className="card shadow-sm border-0 p-4 text-center bg-light">
+            <p className="text-muted mb-3">You don't have a commodity account</p>
+            <button className="btn btn-outline-primary btn-sm mx-auto" style={{ maxWidth: "200px" }}>Open Account</button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

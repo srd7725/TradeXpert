@@ -5,6 +5,7 @@ import "./index.css";
 import Home from "./components/Home";
 import Auth from "./components/Auth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { GeneralContextProvider } from "./components/GeneralContext";
 
 const AppWrapper = () => {
   useEffect(() => {
@@ -16,17 +17,19 @@ const AppWrapper = () => {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Auth />} />
-        <Route 
-          path="/*" 
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          } 
-        />
-      </Routes>
+      <GeneralContextProvider>
+        <Routes>
+          <Route path="/login" element={<Auth />} />
+          <Route 
+            path="/*" 
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </GeneralContextProvider>
     </BrowserRouter>
   );
 };

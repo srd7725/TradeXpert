@@ -4,30 +4,32 @@ import axios from "axios";
 const Positions = () => {
   const [allPositions, setAllPositions] = useState([]);
 
-  useEffect(() => {
-    const fetchPositions = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        window.location.href = "/login";
-        return;
-      }
+  const fetchPositions = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
 
-      try {
-        const res = await axios.get("http://localhost:3002/allPositions", {
-          headers: {
-            Authorization: "Bearer " + token
-          }
-        });
-        setAllPositions(res.data);
-      } catch (err) {
-        if (err.response && err.response.status === 401) {
-          window.location.href = "/login";
+    try {
+      const res = await axios.get("http://localhost:3002/allPositions", {
+        headers: {
+          Authorization: "Bearer " + token
         }
-        console.log(err);
+      });
+      setAllPositions(res.data);
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        window.location.href = "/login";
       }
-    };
+      console.log(err);
+    }
+  };
 
+  useEffect(() => {
     fetchPositions();
+    window.addEventListener("orderUpdate", fetchPositions);
+    return () => window.removeEventListener("orderUpdate", fetchPositions);
   }, []);
 
   return (
