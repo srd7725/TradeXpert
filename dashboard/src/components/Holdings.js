@@ -151,7 +151,7 @@ const Holdings = () => {
     }
 
     try {
-      const res = await axios.get("http://localhost:3002/allHoldings", {
+      const res = await axios.get("http://localhost:5000/allHoldings", {
         headers: {
           Authorization: "Bearer " + token
         }
@@ -201,6 +201,15 @@ const Holdings = () => {
   //   ],
   // };
 
+  let totalInvestment = 0;
+  let currentValue = 0;
+  allHoldings.forEach((stock) => {
+    totalInvestment += stock.avg * stock.qty;
+    currentValue += stock.price * stock.qty;
+  });
+  const totalPnL = currentValue - totalInvestment;
+  const pnlPercentage = totalInvestment > 0 ? (totalPnL / totalInvestment) * 100 : 0;
+
   return (
     <>
       <h3 className="title">Holdings ({allHoldings.length})</h3>
@@ -247,19 +256,17 @@ const Holdings = () => {
 
       <div className="row">
         <div className="col">
-          <h5>
-            29,875.<span>55</span>{" "}
-          </h5>
+          <h5>₹{totalInvestment.toLocaleString()}</h5>
           <p>Total investment</p>
         </div>
         <div className="col">
-          <h5>
-            31,428.<span>95</span>{" "}
-          </h5>
+          <h5>₹{currentValue.toLocaleString()}</h5>
           <p>Current value</p>
         </div>
         <div className="col">
-          <h5>1,553.40 (+5.20%)</h5>
+          <h5 className={totalPnL >= 0 ? "profit" : "loss"}>
+            ₹{totalPnL.toLocaleString()} ({pnlPercentage.toFixed(2)}%)
+          </h5>
           <p>P&L</p>
         </div>
       </div>

@@ -3,33 +3,47 @@ import axios from "axios";
 
 const Positions = () => {
   const [allPositions, setAllPositions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchPositions = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
+    const stored = localStorage.getItem("user");
+    if (!stored) {
       window.location.href = "/login";
       return;
     }
 
+    const user = JSON.parse(stored);
     try {
-      const res = await axios.get("http://localhost:3002/allPositions", {
-        headers: {
-          Authorization: "Bearer " + token
-        }
-      });
-      setAllPositions(res.data);
+      const res = await axios.get(`http://localhost:5000/user-data?email=${user.email}`);
+      setAllPositions(res.data.positions || []);
     } catch (err) {
-      if (err.response && err.response.status === 401) {
-        window.location.href = "/login";
-      }
-      console.log(err);
+      console.error("Error fetching user positions", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchPositions();
     window.addEventListener("orderUpdate", fetchPositions);
-    return () => window.removeEventListener("orderUpdate", fetchPositions);
+
+    // Simulate dynamic price changes (LTP)
+    const interval = setInterval(() => {
+      setAllPositions((prevPositions) =>
+        prevPositions.map((pos) => {
+          const newPrice = pos.price + (Math.random() * 2 - 1); // Simulating smaller fluctuations
+          return {
+            ...pos,
+            price: newPrice,
+          };
+        })
+      );
+    }, 3000);
+
+    return () => {
+      window.removeEventListener("orderUpdate", fetchPositions);
+      clearInterval(interval);
+    };
   }, []);
 
   return (
@@ -57,9 +71,15 @@ const Positions = () => {
             <tbody>
               {allPositions.map((stock, index) => {
                 const curValue = stock.price * stock.qty;
-                const isProfit = curValue - stock.avg * stock.qty >= 0.0;
+                const pnl = curValue - stock.avg * stock.qty;
+                const isProfit = pnl >= 0.0;
                 const profClass = isProfit ? "profit" : "loss";
-                const dayClass = stock.isLoss ? "loss" : "profit";
+                
+                // Calculate dynamic percentage change
+                const chg = stock.avg !== 0 
+                  ? ((stock.price - stock.avg) / stock.avg) * 100 
+                  : 0;
+                const chgClass = chg >= 0 ? "profit" : "loss";
 
                 return (
                   <tr key={index}>
@@ -69,9 +89,11 @@ const Positions = () => {
                     <td>{stock.avg.toFixed(2)}</td>
                     <td>{stock.price.toFixed(2)}</td>
                     <td className={profClass}>
-                      {(curValue - stock.avg * stock.qty).toFixed(2)}
+                      {pnl.toFixed(2)}
                     </td>
-                    <td className={dayClass}>{stock.day}</td>
+                    <td className={chgClass}>
+                      {chg !== 0 ? (chg > 0 ? "+" : "") + chg.toFixed(2) + "%" : "0.00%"}
+                    </td>
                   </tr>
                 );
               })}

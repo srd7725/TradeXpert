@@ -9,6 +9,7 @@ const Summary = () => {
 
   const [summary, setSummary] = useState({
     userName: "User",
+    balance: 0,
     totalInvestment: "0.00",
     currentValue: "0.00",
     totalPnL: "0.00",
@@ -29,7 +30,7 @@ const Summary = () => {
         return;
       }
       try {
-        const res = await axios.get("http://localhost:3002/dashboardSummary", {
+        const res = await axios.get("http://localhost:5000/dashboardSummary", {
           headers: { Authorization: "Bearer " + token }
         });
         setSummary(res.data);
@@ -40,8 +41,10 @@ const Summary = () => {
     fetchSummary();
   }, [navigate]);
 
-  const userName =
-    user && user.name && user.name.trim() !== "" ? user.name : "Guest";
+  const storedUser = localStorage.getItem("user");
+  const userObj = storedUser ? JSON.parse(storedUser) : null;
+  const rawName = user?.name || userObj?.name;
+  const userName = rawName && rawName.trim() !== "" ? rawName : "Guest";
 
   return (
     <>
@@ -57,7 +60,7 @@ const Summary = () => {
 
         <div className="data">
           <div className="first">
-            <h3>3.74k</h3>
+            <h3>₹{Number(summary.balance).toLocaleString()}</h3>
             <p>Margin available</p>
           </div>
           <hr />
@@ -67,7 +70,7 @@ const Summary = () => {
               Margins used <span>0</span>{" "}
             </p>
             <p>
-              Opening balance <span>3.74k</span>{" "}
+              Opening balance <span>₹{Number(summary.balance).toLocaleString()}</span>{" "}
             </p>
           </div>
         </div>
