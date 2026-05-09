@@ -10,7 +10,7 @@ import Positions from "./Positions";
 import Summary from "./Summary";
 import WatchList from "./WatchList";
 import Profile from "./Profile";
-import GeneralContext, { GeneralContextProvider } from "./GeneralContext";
+import GeneralContext from "./GeneralContext";
 import BuyActionWindow from "./BuyActionWindow";
 
 const DashboardContent = () => {

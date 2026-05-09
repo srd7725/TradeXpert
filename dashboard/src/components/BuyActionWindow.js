@@ -1,5 +1,4 @@
 import React, { useState, useContext } from "react";
-import { Link } from "react-router-dom";
 
 import axios from "axios";
 
@@ -10,7 +9,7 @@ import "./BuyActionWindow.css";
 const BuyActionWindow = ({ uid, initialMode = "BUY" }) => {
   const [stockQuantity, setStockQuantity] = useState(1);
   const [stockPrice, setStockPrice] = useState("");
-  const [mode, setMode] = useState(initialMode);
+  const [mode] = useState(initialMode);
   const generalContext = useContext(GeneralContext);
 
   const handleBuyClick = () => {
